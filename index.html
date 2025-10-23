@@ -1,0 +1,56 @@
+<!-- reset_pw.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reset Password</title>
+</head>
+<body>
+  <h2>Reset Password</h2>
+  <form id="resetForm">
+    <input type="password" id="password" placeholder="Password baru" required><br><br>
+    <input type="password" id="confirm" placeholder="Konfirmasi password" required><br><br>
+    <button type="submit">Reset Password</button>
+  </form>
+  <div id="message" style="color: green;"></div>
+  <div id="error" style="color: red;"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <script>
+    const supabase = supabase.createClient(
+      'https://YOUR-SUPABASE-URL.supabase.co',
+      'YOUR-ANON-KEY'
+    );
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const access_token = urlParams.get('access_token');
+
+    const form = document.getElementById('resetForm');
+    const messageDiv = document.getElementById('message');
+    const errorDiv = document.getElementById('error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      messageDiv.textContent = '';
+      errorDiv.textContent = '';
+
+      const password = document.getElementById('password').value;
+      const confirm = document.getElementById('confirm').value;
+
+      if (!access_token) { errorDiv.textContent = 'Token tidak ditemukan'; return; }
+      if (password !== confirm) { errorDiv.textContent = 'Password tidak cocok'; return; }
+      if (password.length < 6) { errorDiv.textContent = 'Password minimal 6 karakter'; return; }
+
+      try {
+        const { data, error } = await supabase.auth.updateUser(
+          { password },
+          { accessToken: access_token }
+        );
+        if (error) errorDiv.textContent = error.message;
+        else messageDiv.textContent = 'Password berhasil diubah!';
+      } catch (err) {
+        errorDiv.textContent = 'Terjadi kesalahan: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
